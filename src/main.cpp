@@ -98,6 +98,10 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
+          double steer_value = j[1]["steering_angle"];
+          double latency = 0.1;
+          double Lf = 2.67;
+
           for (int i = 0; i < ptsx.size(); i++) {
             double s_x = ptsx[i] - px;
             double s_y = ptsy[i] - py;
@@ -119,14 +123,14 @@ int main() {
           Eigen::VectorXd state(6);
 
           // Predicts the initial state
-          state << v * latency, 0, -(v / Lf) * steer_value * latency, v, cte, epsi;
+          state << v * latency, 0, latency * steer_value * -(v / Lf), v, cte, epsi;
 
           auto vars = mpc.Solve(state, coeffs);
 
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
           double throttle_value = vars[1];
-          double steer_value = -vars[0]/deg2rad(25);
+          steer_value = -vars[0]/deg2rad(25);
 
           json msgJson;
           
