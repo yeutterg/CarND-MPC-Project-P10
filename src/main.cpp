@@ -95,6 +95,7 @@ int main() {
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
           double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
 
           // Factor in 100ms latency
           double latency = 0.1;
@@ -112,14 +113,14 @@ int main() {
 
           // Calculate the number of waypoints in the x and y directions
           auto num_wp = ptsx.size();
-          VectorXd wp_x(num_wp);
-          VectorXd wp_y(num_wp);
+          Eigen::VectorXd wp_x(num_wp);
+          Eigen::VectorXd wp_y(num_wp);
           for (int i = 0; i < num_wp; i++) {
             // Shift 90 degrees
             double dx = ptsx[i] - px;
             double dy = ptsy[i] - py;
-            wp_x = dx * cos(-psi) - dy * sin(-psi);
-            wp_y = dx * sin(-psi) + dy * cos(-psi);
+            wp_x[i] = dx * cos(-psi) - dy * sin(-psi);
+            wp_y[i] = dx * sin(-psi) + dy * cos(-psi);
           }
 
           auto coeffs = polyfit(wp_x, wp_y, 3);
@@ -129,7 +130,7 @@ int main() {
           double epsi = -atan(coeffs[1]);
 
           // Set the initial state, just init to zero
-          VectorXd state(6);
+          Eigen::VectorXd state(6);
           state << 0.0, 0.0, 0.0, v, cte, epsi;
 
           // Solve MPC
