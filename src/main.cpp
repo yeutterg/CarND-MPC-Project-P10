@@ -93,17 +93,43 @@ int main() {
           double v = j[1]["speed"];
 
           /*
-          * TODO: Calculate steering angle and throttle using MPC.
+          * Calculate steering angle and throttle using MPC.
           *
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          for (int i = 0; i < ptsx.size(); i++) {
+            double s_x = ptsx[i] - px;
+            double s_y = ptsy[i] - py;
+            ptsx[i] = s_x * cos(0 - psi) - s_y * sin(0 - psi);
+            ptsy[i] = s_x * sin(0 - psi) - s_y * cos(0 - psi);
+          }
 
-          json msgJson;
+          double* ptrx = &ptsx[0];
+          double* ptry = &ptsy[0];
+
+          Eigen::Map<Eigen::VectorXd> wptsx(ptrx, 6);
+          Eigen::Map<Eigen::VectorXd> wptsy(ptry, 6);
+
+          auto coeffs = polyfit(wptsx, wptsy, 3);
+
+          double cte = polyeval(coeffs, 0);
+          double epsi = -atan(coeffs[1]);
+
+          Eigen::VectorXd state(6);
+
+          // Predicts the initial state
+          state << v * latency, 0, -(v / Lf) * steer_value * latency, v, cte, epsi;
+
+          auto vars = mpc.Solve(state, coeffs);
+
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
+          double throttle_value = vars[1];
+          double steer_value = -vars[0]/deg2rad(25);
+
+          json msgJson;
+          
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
