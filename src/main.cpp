@@ -141,7 +141,7 @@ int main() {
 
           json msgJson;
           
-          msgJson["steering_angle"] = mpc_res[0];
+          msgJson["steering_angle"] = -1 * mpc_res[0];
           msgJson["throttle"] = mpc_res[1];
 
           //Display the MPC predicted trajectory (green line)
