@@ -11,8 +11,8 @@ This project is based on the bicycle model, a simplified kinematic model. The fo
 
 | Parameter | Description |
 | --------- | ----------- |
-| p~x       | *x* position of vehicle |
-| p~y       | *y* position of vehicle |
+| px       | *x* position of vehicle |
+| py       | *y* position of vehicle |
 | psi       | orientation of vehicle  |
 | v         | velocity                |
 | cte       | cross-track error       |
@@ -68,7 +68,7 @@ Other values (cte, v, and epsi) were just initialized to zero before the MPC pro
 
 ## 4. Handling of Latency
 
-I based my model on an update latency of 100 ms. To do this successfully, I factored in the latency when calculating p~x, p~y, psi, and v:
+I based my model on an update latency of 100 ms. To do this successfully, I factored in the latency when calculating px, py, psi, and v:
 
 ```python
 // Factor in 100ms latency
@@ -80,3 +80,28 @@ v += latency * throttle_value;
 ```
 
 The result is that the position, orientation, and velocity are computed 100 ms in the future. 
+
+## 5. Parameter Tuning
+
+Parameter tuning was relatively straightforward with a latency of 100 ms, dt = 0.05, and N = 25. I only had to emphasize the actuator inputs, but multiplying them each by 100. Tuning of cte, epsi, v, and actuations with latency factored in was unneccesary. 
+
+```python
+// The part of the cost based on the reference state.
+for (int t = 0; t < N; t++) {
+    fg[0] += 1 * CppAD::pow(vars[cte_start + t], 2);
+    fg[0] += 1 * CppAD::pow(vars[epsi_start + t], 2);
+    fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
+}
+
+// Minimize the use of actuators.
+for (int t = 0; t < N - 1; t++) {
+    fg[0] += 100 * CppAD::pow(vars[delta_start + t], 2);
+    fg[0] += 100 * CppAD::pow(vars[a_start + t], 2);
+}
+
+// Minimize the value gap between sequential actuations.
+for (int t = 0; t < N - 2; t++) {
+    fg[0] += 1 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+    fg[0] += 1 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+}
+```
