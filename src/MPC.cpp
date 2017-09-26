@@ -275,8 +275,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vector<double> result;
 
   // Get the steering angle in radians
-  double rad_25 = 25 * M_PI / 180;
-  result.push_back(solution.x[delta_start] / (rad_25 * Lf));
+  result.push_back(solution.x[delta_start] / (0.436332 * Lf));
 
   // Steering angle not in radians
   // result.push_back(solution.x[delta_start]);
