@@ -99,9 +99,9 @@ int main() {
 
           // Factor in 100ms latency
           double latency = 0.1;
-          psi -= latency * v * steer_value / Lf;
           px += latency * v * cos(psi);
           py += latency * v * sin(psi);
+          psi -= latency * v * steer_value / Lf;
           v += latency * throttle_value;
 
           /*
