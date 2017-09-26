@@ -42,9 +42,11 @@ size_t N = 25;
 double dt = 0.05;
 ```
 
-While these values match the solution from the MPC quiz, I did adjust them in my implementation. I thought that matching dt to the latency (dt = 0.1, latency = 100 ms) would be a logical choice, but it proved harder to tune parameters at dt = 0.1. Parameter tuning was more straightforward at dt = 0.05, or twice as many timestamps as the latency.
+While these values match the solution from the MPC quiz, I did adjust them in my implementation. I thought that matching dt to the latency (dt = 0.1, latency = 100 ms) would be a logical choice, but it proved harder to tune parameters at dt = 0.1. Parameter tuning was more straightforward at dt = 0.05, or twice as many timestamps as the latency.  I suspect this is due to a finer resolution in the calculation update.
 
-I kept N = 25 because performance was acceptable on my computer (Macbook Pro Early 2015, 2.7 GHz Intel Core i5, 8 GB DDR3, MacOS 10.12.6), even with other programs running in the background. The simulation performance could be improved by picking a lower value of N.
+I kept N = 25 because performance was acceptable on my computer (Macbook Pro Early 2015, 2.7 GHz Intel Core i5, 8 GB DDR3, MacOS 10.12.6), even with other programs running in the background. The simulation performance could be improved by picking a lower value of N, because a larger N requires more computational time.
+
+A smaller time horizon (N * dt) allows the car to go faster, because the vehicle covers more distance in the same amount of time as a slower vehicle.
 
 ## 3. Description of Waypoint Processing
 
@@ -65,6 +67,13 @@ for (int i = 0; i < num_wp; i++) {
 ```
 
 Other values (cte, v, and epsi) were just initialized to zero before the MPC procedure.
+
+Model Predictive Control (represented by the green line) outputs were calculated as a third-degree polynomial.
+
+```python
+AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0 * x0 + coeffs[3] * x0 * x0 * x0;
+AD<double> psides0 = CppAD::atan(coeffs[1] + 2 * coeffs[2] * x0 + 3 * coeffs[3] * x0 * x0);
+```
 
 ## 4. Handling of Latency
 
